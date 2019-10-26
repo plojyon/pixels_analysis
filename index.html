@@ -1,0 +1,15 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+<link rel="stylesheet" href="cal-heatmap/cal-heatmap.css" />
+<script type="text/javascript" src="cal-heatmap/cal-heatmap.min.js"></script>
+<div id="cal-heatmap"></div>
+<script type="text/javascript">
+	var cal = new CalHeatMap();
+	cal.init({
+		domain: "month",
+		subDomain: "day",
+		cellSize: 20,
+		subDomainTextFormat: "%d",
+		range: 12,
+		displayLegend: false
+	});
+</script>
