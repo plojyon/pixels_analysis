@@ -34,9 +34,15 @@
 		<ol id="output"></ol>
 
 		<div id="preview">
-			<button type="button" id="prev" onclick="preview_inc(-1)"><-</button>
-			<button type="button" id="next" onclick="preview_inc(+1)">-></button>
-			<h2 id="preview_date">2019-01-01</h2>
+			<div id="preview_title">
+				<button type="button" id="prev" onclick="preview_inc(-1)">-1</button>
+				<div>
+					<!-- give h2 the cal-heatmap class to reuse the colour scheme -->
+					<h2><span id="preview_date">2019-01-01</span></h2>
+					<span id="preview_weekday">Tuesday</span>
+				</div>
+				<button type="button" id="next" onclick="preview_inc(+1)">+1</button>
+			</div>
 			<p id="preview_content"><i>No data for selected date.</i></p>
 			<a id="timeline_link" href="https://www.google.com/maps/timeline?pb=!1m2!1m1!1s2019-01-01" target="_blank">View in timeline</a>
 		</div>
@@ -47,26 +53,31 @@
 			fill: black;
 		}
 
-		/* set the mood colours */
-		.cal-heatmap-container .q5 { /* best */
-			fill: #4CB050;
+		/* set the mood colours ($ref_colours) */
+		.q5 { /* best */
+			fill: #4CB050 !important;
+			background-color: #4CB050;
 		}
-		.cal-heatmap-container .q4 {
-			fill: #9CCC66;
+		.q4 {
+			fill: #9CCC66 !important;
+			background-color: #9CCC66;
 		}
-		.cal-heatmap-container .q3 { /* medium */
-			fill: #00BCD5;
+		.q3 { /* medium */
+			fill: #00BCD5 !important;
+			background-color: #00BCD5;
 		}
-		.cal-heatmap-container .q2 {
-			fill: #5C6BC0;
+		.q2 {
+			fill: #5C6BC0 !important;
+			background-color: #5C6BC0;
 		}
-		.cal-heatmap-container .q1 { /* worst */
-			fill: #7E57C2;
+		.q1 { /* worst */
+			fill: #7E57C2 !important;
+			background-color: #7E57C2;
 		}
 	</style>
 
 	<script>
-		var years = [19, 20, 21]; // which years to display
+		var years = [19, 20, 21]; // which years to display ($ref_years)
 		var cal = []; // cal-heatmap object array (one for each year)
 		var data; // JSON-parsed data from file (not formatted for cal-heatmap)
 		var timeline_link = "https://www.google.com/maps/timeline?pb=!1m2!1m1!1s"; // append a date to generate a maps timeline url
@@ -97,14 +108,26 @@
 			}
 		}
 
+		function get_weekday(date) {
+			d = new Date(date)
+			let day = d.getDay()
+			return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][day]
+		}
+
 		// set the pixel of given date into preview window
 		function preview(date, focus=false) {
 			document.getElementById("preview_date").innerHTML = date;
+			document.getElementById("preview_weekday").innerHTML = get_weekday(date);
+
 			index = getIndexFromDate(date);
-			if (index != -1)
+			if (index != -1) {
 				document.getElementById("preview_content").innerHTML = data[index]["notes"];
-			else
+				document.getElementById("preview_date").className = "q"+data[index]["mood"];
+			}
+			else {
 				document.getElementById("preview_content").innerHTML = "<i>No data for selected date</i>";
+				document.getElementById("preview_date").className = ""
+			}
 
 			document.getElementById("timeline_link").href = timeline_link+date;
 
@@ -325,17 +348,32 @@
 			margin: 10px;
 			border: 1px solid black;
 			width: calc(100% - 900px);
+			text-align: justify;
+		}
+		#preview_title {
+			display: flex;
+		}
+		#preview_title > div {
+			flex: 1;
 		}
 		#preview h2 {
 			text-align: center;
-			margin-top: -30px;
+			display: block;
 		}
-		#next {
-			float: right;
+		#preview_date {
+			/* bgcolor is controlled by mood classes defined above */
+			/* background-color: #00BCD5; */
+			padding: 0.3em;
+			/*text-shadow: 1px 1px white, -1px -1px white, 1px -1px white, -1px 1px white;*/
+			text-shadow: 0 0 5px white;
+		}
+		#preview_weekday {
+			text-align: center;
+			display: block;
+			font-size: 0.8em;
 		}
 		#next, #prev {
-			width: 3em;
-			height: 3em;
+			font-weight: bold;
 		}
 	</style>
 

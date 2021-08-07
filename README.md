@@ -21,6 +21,6 @@ Make sure you escape special characters by running a search and replace:
 (you need to download the project for this variant)
 
 ### P.S.
-To change which years are displayed (default is 2019 and 2020, add or remove them in `index.html` on line 69)
+To change which years are displayed, change the javascript variable in `index.html` (search for `$ref_years`)
 
-Mood colours (palette) can also be changed on lines 50-65.
+Mood colours (palette) can also be changed (search for `$ref_colours`).
