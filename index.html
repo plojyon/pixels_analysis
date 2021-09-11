@@ -26,7 +26,7 @@
 		<div id="cal-heatmap"></div>
 
 		<input type="text" id="query" onchange="search()">
-		<button onclick="search()">Search</button><button onclick="clear_()">Clear</button><br>
+		<button onclick="search()">Search</button><button onclick="clearQuery()">Clear</button><br>
 		<input id="csq" type="checkbox" checked></input> <label for="csq">Comma separates queries</label>
 
 		<p id="counter"></p>
@@ -37,7 +37,6 @@
 			<div id="preview_title">
 				<button type="button" id="prev" onclick="preview_inc(-1)">-1</button>
 				<div>
-					<!-- give h2 the cal-heatmap class to reuse the colour scheme -->
 					<h2><span id="preview_date">2019-01-01</span></h2>
 					<span id="preview_weekday">Tuesday</span>
 				</div>
@@ -82,9 +81,10 @@
 		var data; // JSON-parsed data from file (not formatted for cal-heatmap)
 		var timeline_link = "https://www.google.com/maps/timeline?pb=!1m2!1m1!1s"; // append a date to generate a maps timeline url
 
+		/// Convert Date object to yyyy-mm-dd string
 		Date.prototype.yyyymmdd = function() {
-			var mm = this.getMonth() + 1; // getMonth() is zero-based
-			var dd = this.getDate();
+			let mm = this.getMonth() + 1; // getMonth() is zero-based
+			let dd = this.getDate();
 
 			return [this.getFullYear(),
 				(mm>9 ? '' : '0') + mm,
@@ -92,29 +92,19 @@
 			].join('-');
 		};
 
+		/// Handle click events on the calendar
 		function onCalClick(date, value) {
-			try {
-				document.getElementById(date.yyyymmdd()).classList.add("highlight");
-				setTimeout(function(){
-					document.getElementById(date.yyyymmdd()).classList.remove("highlight");
-				}, 1500);
-
-				document.getElementById(date.yyyymmdd()).scrollIntoView({ behavior: 'smooth', block: 'center'});
-			}
-			catch (e) {
-				// the selected day isn't in the results list,
-				// so just open it in the preview window
-				preview(date.yyyymmdd())
-			}
+			preview(date.yyyymmdd())
 		}
-
+		
+		/// Convert yyyy-mm-dd to weekday name
 		function get_weekday(date) {
 			d = new Date(date)
 			let day = d.getDay()
 			return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][day]
 		}
 
-		// set the pixel of given date into preview window
+		/// Set the pixel of given yyyy-mm-dd into preview window
 		function preview(date, focus=false) {
 			document.getElementById("preview_date").innerHTML = date;
 			document.getElementById("preview_weekday").innerHTML = get_weekday(date);
@@ -141,7 +131,8 @@
 				document.getElementById("preview").scrollIntoView({ behavior: 'smooth', block: 'center'});
 			}
 		}
-		// increments (or decrements) preview by inc days
+
+		/// Increment the preview window
 		function preview_inc(inc) {
 			date = document.getElementById("preview_date").innerHTML;
 			next = new Date(date);
@@ -149,6 +140,7 @@
 			preview(next.yyyymmdd());
 		}
 
+		/// Get pixels data (either from data.json or from user input)
 		window.onload = function() {
 			try {
 				// try to parse data if any was received from adjacent .json files
@@ -172,9 +164,7 @@
 						alert("Invalid JSON data.");
 						console.log(err);
 						location.reload();
-						crash(); // function does not exist, so it crashes
-						// we need to crash here, because until the page reloads,
-						// js will continue to execute.
+						return;
 					}
 					draw(); // do not want this in the try block
 				}
@@ -184,8 +174,8 @@
 			draw();
 		}
 
+		/// Hide the data-collection textarea and display the analysis page
 		function draw() {
-			// hide the textarea and display the real deal instead
 			document.getElementById("display").style.display = "initial";
 			document.getElementById("no_data").style.display = "none";
 
@@ -195,7 +185,7 @@
 			// format the data for cal-heatmap
 			formatted_data = {};
 			for (i in data) {
-				var seconds = getTimestampFromDate(data[i]["date"]);
+				let seconds = getTimestampFromDate(data[i]["date"]);
 				formatted_data[seconds] = data[i]["mood"];
 			}
 
@@ -215,47 +205,40 @@
 				});
 			}
 		}
-
+		
+		/// Convert Date to seconds-timestamp
 		function getTimestampFromDate(date) {
 			return new Date(date).getTime() / 1000;
 		}
 
+		/// Get the index of the first entry with the given yyyy-mm-dd
 		function getIndexFromDate(date) {
-			for (var i in data) {
+			for (let i in data) {
 				if (data[i]["date"] == date)
 					return i;
 			}
 			return -1; // data[-1] is an error message
 		}
 
-
+		/// Highlight results on the calendar and list them below
 		function search() {
-			var query = document.getElementById("query").value;
+			let query = document.getElementById("query").value;
+
+			// querying for an empty string would cause problems
 			if (query == "") {
-				// hide all results
-				document.getElementById("counter").innerHTML = "";
-				document.getElementById("output").innerHTML = "";
-
-				// show all pixels
-				formatted_data = {};
-				for (i in data) {
-					var seconds = getTimestampFromDate(data[i]["date"]);
-					formatted_data[seconds] = data[i]["mood"];
-				}
-				for (y in years) {
-					cal[y].update(formatted_data);
-				}
-
+				clearQuery()
 				return;
 			}
 
+			// hide results from previous queries
 			document.getElementById("output").innerHTML = "";
 			document.getElementById("counter").innerHTML = "";
+
 			formatted_data = {};
 
 			// comma separates queries? (csq)
 			multiQuery = document.getElementById("csq").checked;
-			var queries = [];
+			let queries = [];
 			if (multiQuery) {
 				queries = query.split(",")
 			}
@@ -270,29 +253,29 @@
 					// if query found in notes
 					if (data[i]["notes"].toUpperCase().includes(queries[q].toUpperCase())) {
 						// highlight day on cal-heatmap
-						var seconds = getTimestampFromDate(data[i]["date"]);
+						let seconds = getTimestampFromDate(data[i]["date"]);
 						formatted_data[seconds] = data[i]["mood"];
 
 						// add result node
-						var node = document.createElement("li");
+						let node = document.createElement("li");
 						node.id = data[i]["date"];
 						node.setAttribute('onclick', 'preview("'+data[i]["date"]+'", true)');
 
-						var date_node = document.createElement("b");
+						let date_node = document.createElement("b");
 						date_node.innerHTML = data[i]["date"] + " ";
 						node.appendChild(date_node);
 
 						// highlight all query occurences
-						var highlighted = data[i]["notes"];
+						let highlighted = data[i]["notes"];
 						for (p in queries) {
-							var regex = new RegExp(queries[p],"gi");
-							var arr = highlighted.split(regex)
+							let regex = new RegExp(queries[p],"gi");
+							let arr = highlighted.split(regex)
 							resultsCount[p] += arr.length-1;
 							highlighted = arr.join("<span class='queryMatch'>"+queries[p]+"</span>");
 						}
 						node.innerHTML += highlighted;
 
-						document.getElementById("output").appendChild(node);
+						document.getElementById("output").prepend(node);
 
 						break; // skip the other queries on this result
 					}
@@ -307,10 +290,20 @@
 			}
 		}
 
-		// function clear() is a reserved name and doesn't work
-		function clear_() {
+		function clearQuery() {
 			document.getElementById("query").value = "";
-			search();
+			document.getElementById("output").innerHTML = "";
+			document.getElementById("counter").innerHTML = "";
+			
+			// show all pixels
+			formatted_data = {};
+			for (i in data) {
+				let seconds = getTimestampFromDate(data[i]["date"]);
+				formatted_data[seconds] = data[i]["mood"];
+			}
+			for (y in years) {
+				cal[y].update(formatted_data);
+			}
 		}
 	</script>
 
